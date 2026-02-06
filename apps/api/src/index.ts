@@ -1,0 +1,21 @@
+import express from 'express';
+import cors from 'cors';
+import categoriesRouter from './routes/categories.js';
+import providersRouter from './routes/providers.js';
+
+const app = express();
+const PORT = Number(process.env.PORT) || 3000;
+
+app.use(cors());
+app.use(express.json());
+
+app.use('/api/categories', categoriesRouter);
+app.use('/api/providers', providersRouter);
+
+app.get('/health', (_req, res) => {
+  res.json({ ok: true });
+});
+
+app.listen(PORT, () => {
+  console.log(`Handig API running at http://localhost:${PORT}`);
+});
