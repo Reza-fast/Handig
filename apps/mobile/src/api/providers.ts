@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { api } from './client';
-import type { Provider } from '@/types';
+import type { Provider } from '@/types/model';
 
 export function useProvidersByCategory(categoryId: string) {
   return useQuery({

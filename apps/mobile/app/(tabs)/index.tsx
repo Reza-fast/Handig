@@ -1,11 +1,23 @@
-import { View, Text, ScrollView, Pressable, StyleSheet, Image } from 'react-native';
+import { View, Text, ScrollView, Pressable, StyleSheet, Image, useWindowDimensions } from 'react-native';
 import { Link } from 'expo-router';
 import { useTheme } from '@/theme/ThemeContext';
 import { useCategories, useServices } from '@/api/categories';
 
+
+
 const PLACEHOLDER_IMAGE = 'https://images.unsplash.com/photo-1563453392212-326f5e854473?w=200&h=200&fit=crop';
 
-function CategorySection({ categoryId, categoryName }: { categoryId: string; categoryName: string }) {
+function CategorySection({
+  categoryId,
+  categoryName,
+  cardWidth,
+  imageHeight,
+}: {
+  categoryId: string;
+  categoryName: string;
+  cardWidth: number;
+  imageHeight: number;
+}) {
   const { colors } = useTheme();
   const { data: servicesList, isLoading } = useServices(categoryId);
 
@@ -25,21 +37,21 @@ function CategorySection({ categoryId, categoryName }: { categoryId: string; cat
               <Pressable
                 style={({ pressed }) => [
                   styles.serviceCard,
-                  { backgroundColor: colors.card, borderColor: colors.border },
+                  { width: cardWidth, backgroundColor: colors.card, borderColor: colors.border },
                   pressed && styles.cardPressed,
                 ]}
               >
-                <View style={[styles.imageWrap, { backgroundColor: colors.border }]}>
+                <View style={[styles.imageWrap, { width: cardWidth, height: imageHeight, backgroundColor: colors.border }]}>
                   {s.imageUrl ? (
                     <Image
                       source={{ uri: s.imageUrl }}
-                      style={styles.serviceImage}
+                      style={{ width: cardWidth, height: imageHeight }}
                       resizeMode="cover"
                     />
                   ) : (
                     <Image
                       source={{ uri: PLACEHOLDER_IMAGE }}
-                      style={styles.serviceImage}
+                      style={{ width: cardWidth, height: imageHeight }}
                       resizeMode="cover"
                     />
                   )}
@@ -58,7 +70,12 @@ function CategorySection({ categoryId, categoryName }: { categoryId: string; cat
 
 export default function ExploreScreen() {
   const { colors } = useTheme();
+  const { width } = useWindowDimensions();
   const { data: categories, isLoading } = useCategories();
+
+  const isTablet = width >= 768;
+  const cardWidth = isTablet ? 220 : 180;
+  const imageHeight = isTablet ? 200 : 160;
 
   if (isLoading) {
     return (
@@ -75,7 +92,13 @@ export default function ExploreScreen() {
       showsVerticalScrollIndicator={false}
     >
       {(categories ?? []).map((cat) => (
-        <CategorySection key={cat.id} categoryId={cat.id} categoryName={cat.name} />
+        <CategorySection
+          key={cat.id}
+          categoryId={cat.id}
+          categoryName={cat.name}
+          cardWidth={cardWidth}
+          imageHeight={imageHeight}
+        />
       ))}
     </ScrollView>
   );
@@ -93,20 +116,12 @@ const styles = StyleSheet.create({
   },
   horizontalList: { gap: 14, paddingRight: 16 },
   serviceCard: {
-    width: 140,
     borderRadius: 12,
     borderWidth: 1,
     overflow: 'hidden',
   },
   cardPressed: { opacity: 0.9 },
-  imageWrap: {
-    width: '100%',
-    height: 100,
-  },
-  serviceImage: {
-    width: '100%',
-    height: '100%',
-  },
+  imageWrap: {},
   serviceName: {
     fontSize: 14,
     fontWeight: '600',
