@@ -20,6 +20,7 @@ export default function RootLayout() {
           <Stack.Screen name="index" options={{ title: 'Handig' }} />
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="category/[id]" options={{ title: 'Category' }} />
+          <Stack.Screen name="service/[id]" options={{ title: 'Service' }} />
           <Stack.Screen name="provider/[id]" options={{ title: 'Provider' }} />
         </Stack>
       </ThemeProvider>

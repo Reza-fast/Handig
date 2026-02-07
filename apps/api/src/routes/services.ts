@@ -1,37 +1,17 @@
 import { Router } from 'express';
 import { db } from '../db/index.js';
-import { categories, providers, services } from '../db/schema.js';
+import { providers, services } from '../db/schema.js';
 import { eq, asc } from 'drizzle-orm';
 
 const router = Router();
 
-router.get('/', (_req, res) => {
-  const list = db
-    .select()
-    .from(categories)
-    .orderBy(asc(categories.sortOrder))
-    .all();
-  const plain = list.map((c) => ({
-    id: String(c.id),
-    name: String(c.name),
-    slug: String(c.slug),
-    description: c.description == null ? null : String(c.description),
-    icon: c.icon == null ? null : String(c.icon),
-    sortOrder: Number(c.sortOrder),
-    createdAt: c.createdAt == null ? null : (c.createdAt instanceof Date ? c.createdAt.toISOString() : String(c.createdAt)),
-  }));
-  res.json(plain);
-});
-
-router.get('/:id/services', (req, res) => {
+router.get('/:id', (req, res) => {
   const { id } = req.params;
-  const list = db
-    .select()
-    .from(services)
-    .where(eq(services.categoryId, id))
-    .orderBy(asc(services.sortOrder))
-    .all();
-  const plain = list.map((s) => ({
+  const s = db.select().from(services).where(eq(services.id, id)).get();
+  if (!s) {
+    return res.status(404).json({ error: 'Service not found' });
+  }
+  res.json({
     id: String(s.id),
     categoryId: String(s.categoryId),
     name: String(s.name),
@@ -40,19 +20,15 @@ router.get('/:id/services', (req, res) => {
     sortOrder: Number(s.sortOrder),
     imageUrl: s.imageUrl == null ? null : String(s.imageUrl),
     createdAt: s.createdAt == null ? null : (s.createdAt instanceof Date ? s.createdAt.toISOString() : String(s.createdAt)),
-  }));
-  res.json(plain);
+  });
 });
-
-
-
 
 router.get('/:id/providers', (req, res) => {
   const { id } = req.params;
   const list = db
     .select()
     .from(providers)
-    .where(eq(providers.categoryId, id))
+    .where(eq(providers.serviceId, id))
     .all();
   const plain = list.map((p) => ({
     id: String(p.id),
@@ -69,4 +45,5 @@ router.get('/:id/providers', (req, res) => {
   }));
   res.json(plain);
 });
+
 export default router;

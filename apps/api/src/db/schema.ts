@@ -12,6 +12,21 @@ export const categories = sqliteTable('categories', {
     .$defaultFn(() => new Date()),
 });
 
+export const services = sqliteTable('services', {
+  id: text('id').primaryKey(),
+  categoryId: text('category_id')
+    .notNull()
+    .references(() => categories.id, { onDelete: 'cascade' }),
+  name: text('name').notNull(),
+  description: text('description'),
+  sortOrder: integer('sort_order').notNull().default(0),
+  slug: text('slug').notNull().unique(),
+  imageUrl: text('image_url'),
+  createdAt: integer('created_at', { mode: 'timestamp' })
+    .notNull()
+    .$defaultFn(() => new Date()),
+});
+
 export const providers = sqliteTable('providers', {
   id: text('id').primaryKey(),
   name: text('name').notNull(),
@@ -19,6 +34,9 @@ export const providers = sqliteTable('providers', {
   categoryId: text('category_id')
     .notNull()
     .references(() => categories.id, { onDelete: 'cascade' }),
+    serviceId: text('service_id')
+    .notNull()
+    .references(() => services.id, { onDelete: 'cascade' }),
   address: text('address'),
   latitude: real('latitude'),
   longitude: real('longitude'),
@@ -31,5 +49,7 @@ export const providers = sqliteTable('providers', {
 
 export type Category = typeof categories.$inferSelect;
 export type NewCategory = typeof categories.$inferInsert;
+export type Service = typeof services.$inferSelect;
+export type NewService = typeof services.$inferInsert;
 export type Provider = typeof providers.$inferSelect;
 export type NewProvider = typeof providers.$inferInsert;

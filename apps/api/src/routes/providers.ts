@@ -16,6 +16,7 @@ router.get('/:id', (req, res) => {
     name: String(p.name),
     description: p.description == null ? null : String(p.description),
     categoryId: String(p.categoryId),
+    serviceId: p.serviceId == null ? null : String(p.serviceId),
     address: p.address == null ? null : String(p.address),
     latitude: p.latitude == null ? null : Number(p.latitude),
     longitude: p.longitude == null ? null : Number(p.longitude),

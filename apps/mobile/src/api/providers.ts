@@ -11,6 +11,14 @@ export function useProvidersByCategory(categoryId: string) {
   });
 }
 
+export function useProvidersByService(serviceId: string) {
+  return useQuery({
+    queryKey: ['providers', 'service', serviceId],
+    queryFn: () => api<Provider[]>(`/api/services/${serviceId}/providers`),
+    enabled: !!serviceId,
+  });
+}
+
 export function useProvider(id: string) {
   return useQuery({
     queryKey: ['provider', id],
