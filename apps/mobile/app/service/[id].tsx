@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, Pressable, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, Pressable, StyleSheet, useWindowDimensions } from 'react-native';
 import { Image } from 'expo-image';
 import { Link, useLocalSearchParams } from 'expo-router';
 import { useTheme } from '@/theme/ThemeContext';
@@ -10,23 +10,47 @@ const PLACEHOLDER_IMAGE = 'https://images.unsplash.com/photo-1563453392212-326f5
 export default function ServiceScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { colors } = useTheme();
+  const { width } = useWindowDimensions();
+
   const { data: service, isLoading: serviceLoading } = useService(id ?? '');
   const { data: providers, isLoading: providersLoading } = useProvidersByService(id ?? '');
 
-  const isLoading = serviceLoading || providersLoading;
+  const isTablet = width >= 768;
 
-  if (isLoading && !service) {
+  // 1. HEIGHT CHANGE: Multiplied by 1.8 for portrait look
+  const IMAGE_WIDTH = isTablet ? 200 : 180; 
+  const IMAGE_HEIGHT = IMAGE_WIDTH * 1.8; 
+  const RADIUS = 18;
+  const BORDER_WIDTH = 2;
+  const INNER_RADIUS = RADIUS - BORDER_WIDTH;
+
+  // 2. RATING SYSTEM: Helper to render 5 stars
+  const renderStars = (rating: number) => {
+    const fullStars = Math.floor(rating);
+    return (
+      <View style={styles.starContainer}>
+        {[1, 2, 3, 4, 5].map((star) => (
+          <Text 
+            key={star} 
+            style={[
+              styles.star, 
+              { color: star <= fullStars ? '#FFD700' : colors.border }
+            ]}
+          >
+            {star <= fullStars ? '★' : '☆'}
+          </Text>
+        ))}
+        <Text style={[styles.ratingText, { color: colors.textSecondary }]}>
+          ({rating.toFixed(1)})
+        </Text>
+      </View>
+    );
+  };
+
+  if (serviceLoading && !service) {
     return (
       <View style={[styles.center, { backgroundColor: colors.background }]}>
         <Text style={{ color: colors.textSecondary }}>Loading...</Text>
-      </View>
-    );
-  }
-
-  if (!service) {
-    return (
-      <View style={[styles.center, { backgroundColor: colors.background }]}>
-        <Text style={{ color: colors.textSecondary }}>Service not found</Text>
       </View>
     );
   }
@@ -35,70 +59,79 @@ export default function ServiceScreen() {
     <ScrollView
       style={[styles.container, { backgroundColor: colors.background }]}
       contentContainerStyle={styles.content}
+      showsVerticalScrollIndicator={false}
     >
-      <Text style={[styles.serviceName, { color: colors.text }]}>{service.name}</Text>
-      <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>
-        Providers
-      </Text>
-      {providersLoading ? (
-        <Text style={{ color: colors.textSecondary }}>Loading providers...</Text>
-      ) : (providers ?? []).length === 0 ? (
-        <Text style={[styles.empty, { color: colors.textSecondary }]}>
-          No providers yet for this service.
-        </Text>
-      ) : (
-        (providers ?? []).map((p) => (
-          <Link key={p.id} href={`/provider/${p.id}`} asChild>
-            <Pressable
-  style={({ pressed }) => [
-    styles.card,
-    {
-      backgroundColor: colors.card,
-      borderColor: colors.border,
-    },
-    pressed && styles.cardPressed,
-  ]}
->
-  <View style={styles.imageWrap}>
-    <Image
-      source={p.imageUrl || PLACEHOLDER_IMAGE}
-      style={styles.providerImage}
-      contentFit="cover"
-      transition={200}
-    />
-  </View>
+      <Text style={[styles.serviceName, { color: colors.text }]}>{service?.name}</Text>
+      <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>Providers</Text>
 
-  <View style={styles.cardContent}>
-    <View>
-      <Text
-        style={[styles.name, { color: colors.text }]}
-        numberOfLines={2}
-      >
-        {p.name}
-      </Text>
+      {(providers ?? []).map((p, index) => {
+        const isLast = index === (providers ?? []).length - 1;
+        
+        // FIXED: Added 'return' here so the components actually render
+        return (
+          <View key={p.id} style={{ marginBottom: 30 }}>
+     <Link key={p.id} href={`/provider/${p.id}`} asChild>
+          <Pressable style={({ pressed }) => [
+                styles.card,
+                {
+                  backgroundColor: colors.card,
+                  borderColor: colors.border,
+                  borderRadius: RADIUS,
+                  borderWidth: BORDER_WIDTH,
+                  minHeight: IMAGE_HEIGHT + 8,
+                  // Apply gap only to the bottom of cards, except the last one if preferred
+                  marginBottom: isLast ? 16 : 90, 
+                },
+                pressed && styles.cardPressed,
+              ]}
+            >
+              <View style={styles.cardRow}>
+                <View
+                  style={[
+                    styles.imageWrap,
+                    {
+                      width: IMAGE_WIDTH,
+                      height: IMAGE_HEIGHT,
+                      borderRadius: INNER_RADIUS,
+                      margin: 4,
+                    },
+                  ]}
+                >
+                  <Image
+                    source={{ uri: p.imageUrl || PLACEHOLDER_IMAGE }}
+                    style={styles.providerImage}
+                    contentFit="cover"
+                    transition={200}
+                  />
+                </View>
 
-      {p.description && (
-        <Text
-          style={[styles.description, { color: colors.textSecondary }]}
-          numberOfLines={3}
-        >
-          {p.description}
-        </Text>
-      )}
-    </View>
+                <View style={styles.cardContent}>
+                  <View style={styles.textBlock}>
+                    <Text
+                      style={[styles.name, { color: colors.text, fontSize: isTablet ? 22 : 18 }]}
+                      numberOfLines={1}
+                    >
+                      {p.name}
+                    </Text>
 
-    {p.rating != null && (
-      <Text style={[styles.rating, { color: colors.primary }]}>
-        ★ {p.rating.toFixed(1)}
-      </Text>
-    )}
-  </View>
-</Pressable>
+                    {p.description && (
+                      <Text
+                        style={[styles.description, { color: colors.textSecondary, fontSize: isTablet ? 16 : 14 }]}
+                        numberOfLines={isTablet ? 10 : 8} 
+                      >
+                        {p.description}
+                      </Text>
+                    )}
+                  </View>
 
-
+                  {p.rating != null ? renderStars(p.rating) : null}
+                </View>
+              </View>
+            </Pressable>
           </Link>
-        ))
-      )}
+          </View>
+        );
+      })}
     </ScrollView>
   );
 }
@@ -106,50 +139,32 @@ export default function ServiceScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  content: { padding: 16, paddingBottom: 32 },
-  serviceName: { fontSize: 22, fontWeight: '700', marginBottom: 16 },
+  content: { padding: 20, paddingBottom: 40 },
+  serviceName: { fontSize: 26, fontWeight: '800', marginBottom: 16 },
   sectionTitle: { fontSize: 16, fontWeight: '600', marginBottom: 12 },
-  card: {
-    flexDirection: 'row',
-    borderRadius: 16,
-    borderWidth: 1,
-    marginBottom: 14,
+  card: { 
     overflow: 'hidden',
-    minHeight: 180, // 👈 controls card height
+    // Shadow for depth
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
-  
-  imageWrap: {
-    width: 150, // 👈 wider image
-    height: '100%', // 👈 stretch full card height
-    backgroundColor: '#eee',
-  },
-  
-  providerImage: {
-    width: '100%',
-    height: '100%',
-  },
-  
+  cardRow: { flexDirection: 'row', alignItems: 'flex-start', width: '100%' },
+  cardPressed: { opacity: 0.9, transform: [{ scale: 0.98 }] },
+  imageWrap: { backgroundColor: '#eee', overflow: 'hidden', flexShrink: 0 },
+  providerImage: { width: '100%', height: '100%' },
   cardContent: {
     flex: 1,
-    padding: 16,
-    justifyContent: 'space-between', // 👈 better vertical layout
+    padding: 16, // Reduced slightly from 25 for better text room
+    justifyContent: 'space-between',
+    alignSelf: 'stretch',
   },
-  
-  name: {
-    fontSize: 18,
-    fontWeight: '700',
-    marginBottom: 6,
-  },
-  
-  description: {
-    fontSize: 14,
-    lineHeight: 20,
-    marginBottom: 10,
-  },
-  
-  rating: {
-    fontSize: 15,
-    fontWeight: '600',
-  },
-  empty: { fontSize: 14 },
+  textBlock: { marginBottom: 10 },
+  name: { fontWeight: '700', marginBottom: 6 },
+  description: { lineHeight: 20 },
+  starContainer: { flexDirection: 'row', alignItems: 'center', marginTop: 8 },
+  star: { fontSize: 18, marginRight: 2 },
+  ratingText: { fontSize: 13, fontWeight: '600', marginLeft: 4 },
 });

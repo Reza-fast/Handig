@@ -45,7 +45,8 @@ const seedServices = [
 
 const seedProviders = [
   { id: randomUUID(), name: 'QuickFix Boiler Service', description: '24/7 boiler repair and installation.', categoryId: homeId, serviceId: homeBoilerId, address: '123 Main St', rating: 4.8 },
-  { id: randomUUID(), name: "Joe's Plumbing", description: 'Residential and commercial plumbing.', categoryId: homeId, serviceId: homePlumbersId, address: '456 Oak Ave', rating: 4.6 },
+  { id: randomUUID(), name: 'QuickFix Plumbing', description: 'Residential and commercial plumbing.', categoryId: homeId, serviceId: homePlumbersId, address: '456 Oak Ave', rating: 4.7 },
+  { id: randomUUID(), name: "Joe's Plumbing", description: 'Residential', categoryId: homeId, serviceId: homePlumbersId, address: '456 Oak Ave', rating: 4.6 },
   { id: randomUUID(), name: 'Serenity Spa', description: 'Massage, facials, and relaxation.', categoryId: wellnessId, serviceId: wellnessSpaId, address: '789 Wellness Blvd', rating: 4.9 },
   { id: randomUUID(), name: 'Nordic Sauna House', description: 'Traditional Finnish sauna experience.', categoryId: wellnessId, serviceId: wellnessSaunaId, address: '321 Pine Rd', rating: 4.7 },
   { id: randomUUID(), name: 'Style Studio', description: 'Haircuts, styling, and barber services.', categoryId: lifestyleId, serviceId: lifestyleBarbersId, address: '555 Style Lane', rating: 4.5 },
