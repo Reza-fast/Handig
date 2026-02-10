@@ -1,0 +1,3 @@
+in root npm run api
+
+en in apps/mobile ->  npx expo start -c
