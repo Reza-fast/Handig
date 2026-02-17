@@ -5,9 +5,10 @@ import { eq, asc } from 'drizzle-orm';
 
 const router = Router();
 
-router.get('/:id', (req, res) => {
+router.get('/:id', async (req, res) => {
   const { id } = req.params;
-  const s = db.select().from(services).where(eq(services.id, id)).get();
+  const rows = await db.select().from(services).where(eq(services.id, id)).limit(1);
+  const s = rows[0];
   if (!s) {
     return res.status(404).json({ error: 'Service not found' });
   }
@@ -23,13 +24,12 @@ router.get('/:id', (req, res) => {
   });
 });
 
-router.get('/:id/providers', (req, res) => {
+router.get('/:id/providers', async (req, res) => {
   const { id } = req.params;
-  const list = db
+  const list = await db
     .select()
     .from(providers)
-    .where(eq(providers.serviceId, id))
-    .all();
+    .where(eq(providers.serviceId, id));
   const plain = list.map((p) => ({
     id: String(p.id),
     name: String(p.name),

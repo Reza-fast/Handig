@@ -3,7 +3,7 @@
 A cross-platform (iOS/Android) app to find local services: **Home** (boiler, plumber), **Wellness** (spa, sauna), **Lifestyle** (haircut, beauty).
 
 - **Mobile**: React Native (Expo) with TypeScript
-- **API**: Node.js + Express + **Drizzle ORM** (SQLite)
+- **API**: Node.js + Express + **Drizzle ORM** (PostgreSQL / Supabase)
 
 ## Project structure
 
@@ -39,15 +39,22 @@ From the repo root:
 npm install
 ```
 
-### 2. Database (API)
+### 2. Database (API) — Supabase / PostgreSQL
 
-```bash
-# Create DB and run migrations
-npm run db:migrate
-
-# Seed categories (Home, Wellness, Lifestyle) and sample providers
-npm run db:seed
-```
+1. Create a project at [supabase.com](https://supabase.com) and get your **Database** connection string (Project Settings → Database → Connection string, URI).
+2. In `apps/api`, create a `.env` file and set:
+   ```bash
+   DATABASE_URL=postgresql://postgres.[ref]:[PASSWORD]@...pooler.supabase.com:6543/postgres
+   ```
+   Use one line, no quotes. If your password contains `@`, `#`, `:`, `/`, or `%`, either percent-encode them (e.g. `@` → `%40`) or set a new database password in Supabase (letters and numbers only).
+3. Migrations run automatically when the API starts. To run them manually (e.g. for seeding first):
+   ```bash
+   cd apps/api && npm run db:migrate
+   ```
+4. Seed categories and sample providers:
+   ```bash
+   npm run db:seed
+   ```
 
 Optional: inspect data with Drizzle Studio:
 
@@ -99,6 +106,6 @@ Then press `i` for iOS simulator or `a` for Android emulator.
 - Add search (by name, category)
 - Add maps / “nearby” using provider lat/lng
 - Add auth and favorites persistence
-- Replace SQLite with PostgreSQL for production (change dialect in `drizzle.config.ts` and use `pg` + `drizzle-orm/postgres-js` or similar)
+- Add Supabase Auth and Realtime from the mobile app if needed
 
 **Assets:** Replace the placeholder images in `apps/mobile/assets/` with your own `icon.png`, `splash-icon.png`, and `adaptive-icon.png` (e.g. 1024×1024 for icon) before publishing.

@@ -5,9 +5,10 @@ import { eq } from 'drizzle-orm';
 
 const router = Router();
 
-router.get('/:id', (req, res) => {
+router.get('/:id', async (req, res) => {
   const { id } = req.params;
-  const p = db.select().from(providers).where(eq(providers.id, id)).get();
+  const rows = await db.select().from(providers).where(eq(providers.id, id)).limit(1);
+  const p = rows[0];
   if (!p) {
     return res.status(404).json({ error: 'Provider not found' });
   }

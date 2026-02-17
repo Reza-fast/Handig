@@ -1,1 +1,13 @@
-{"version":"7","dialect":"sqlite","entries":[{"idx":0,"version":"7","when":0,"tag":"0000_categories","breakpoints":true},{"idx":1,"version":"7","when":1,"tag":"0001_categories_slug_index","breakpoints":true},{"idx":2,"version":"7","when":2,"tag":"0002_providers","breakpoints":true},{"idx":3,"version":"7","when":3,"tag":"0003_services","breakpoints":true},{"idx":4,"version":"7","when":4,"tag":"0004_services_slug_index","breakpoints":true},{"idx":5,"version":"7","when":5,"tag":"0005_providers_service_id","breakpoints":true}]}
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 0,
+      "tag": "0000_initial",
+      "breakpoints": true
+    }
+  ]
+}

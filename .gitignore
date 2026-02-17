@@ -36,3 +36,7 @@ web-build/
 # Testing
 coverage/
 .nyc_output/
+
+
+.env
+.env.local

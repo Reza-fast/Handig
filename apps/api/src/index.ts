@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import { runMigrations } from './db/index.js';
 import categoriesRouter from './routes/categories.js';
 import providersRouter from './routes/providers.js';
 import servicesRouter from './routes/services.js';
@@ -18,6 +19,13 @@ app.get('/health', (_req, res) => {
   res.json({ ok: true });
 });
 
-app.listen(PORT, () => {
-  console.log(`Handig API running at http://localhost:${PORT}`);
-});
+runMigrations()
+  .then(() => {
+    app.listen(PORT, () => {
+      console.log(`Handig API running at http://localhost:${PORT}`);
+    });
+  })
+  .catch((err) => {
+    console.error('Migration failed:', err);
+    process.exit(1);
+  });

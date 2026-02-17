@@ -5,12 +5,11 @@ import { eq, asc } from 'drizzle-orm';
 
 const router = Router();
 
-router.get('/', (_req, res) => {
-  const list = db
+router.get('/', async (_req, res) => {
+  const list = await db
     .select()
     .from(categories)
-    .orderBy(asc(categories.sortOrder))
-    .all();
+    .orderBy(asc(categories.sortOrder));
   const plain = list.map((c) => ({
     id: String(c.id),
     name: String(c.name),
@@ -23,14 +22,13 @@ router.get('/', (_req, res) => {
   res.json(plain);
 });
 
-router.get('/:id/services', (req, res) => {
+router.get('/:id/services', async (req, res) => {
   const { id } = req.params;
-  const list = db
+  const list = await db
     .select()
     .from(services)
     .where(eq(services.categoryId, id))
-    .orderBy(asc(services.sortOrder))
-    .all();
+    .orderBy(asc(services.sortOrder));
   const plain = list.map((s) => ({
     id: String(s.id),
     categoryId: String(s.categoryId),
@@ -47,13 +45,12 @@ router.get('/:id/services', (req, res) => {
 
 
 
-router.get('/:id/providers', (req, res) => {
+router.get('/:id/providers', async (req, res) => {
   const { id } = req.params;
-  const list = db
+  const list = await db
     .select()
     .from(providers)
-    .where(eq(providers.categoryId, id))
-    .all();
+    .where(eq(providers.categoryId, id));
   const plain = list.map((p) => ({
     id: String(p.id),
     name: String(p.name),

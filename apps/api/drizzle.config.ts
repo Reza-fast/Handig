@@ -3,8 +3,11 @@ import { defineConfig } from 'drizzle-kit';
 export default defineConfig({
   schema: './src/db/schema.ts',
   out: './src/db/migrations',
-  dialect: 'sqlite',
+  dialect: 'postgresql',
   dbCredentials: {
-    url: process.env.DATABASE_URL ?? './data/handig.db',
+    url:
+      process.env.DATABASE_URL ??
+      process.env.SUPABASE_DATABASE_URL ??
+      'postgresql://localhost:5432/handig',
   },
 });

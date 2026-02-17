@@ -1,18 +1,18 @@
-import { sqliteTable, text, integer, real } from 'drizzle-orm/sqlite-core';
+import { pgTable, text, integer, real, timestamp } from 'drizzle-orm/pg-core';
 
-export const categories = sqliteTable('categories', {
+export const categories = pgTable('categories', {
   id: text('id').primaryKey(),
   name: text('name').notNull(),
   slug: text('slug').notNull().unique(),
   description: text('description'),
   icon: text('icon'),
   sortOrder: integer('sort_order').notNull().default(0),
-  createdAt: integer('created_at', { mode: 'timestamp' })
+  createdAt: timestamp('created_at', { withTimezone: true })
     .notNull()
-    .$defaultFn(() => new Date()),
+    .defaultNow(),
 });
 
-export const services = sqliteTable('services', {
+export const services = pgTable('services', {
   id: text('id').primaryKey(),
   categoryId: text('category_id')
     .notNull()
@@ -22,19 +22,19 @@ export const services = sqliteTable('services', {
   sortOrder: integer('sort_order').notNull().default(0),
   slug: text('slug').notNull().unique(),
   imageUrl: text('image_url'),
-  createdAt: integer('created_at', { mode: 'timestamp' })
+  createdAt: timestamp('created_at', { withTimezone: true })
     .notNull()
-    .$defaultFn(() => new Date()),
+    .defaultNow(),
 });
 
-export const providers = sqliteTable('providers', {
+export const providers = pgTable('providers', {
   id: text('id').primaryKey(),
   name: text('name').notNull(),
   description: text('description'),
   categoryId: text('category_id')
     .notNull()
     .references(() => categories.id, { onDelete: 'cascade' }),
-    serviceId: text('service_id')
+  serviceId: text('service_id')
     .notNull()
     .references(() => services.id, { onDelete: 'cascade' }),
   address: text('address'),
@@ -42,9 +42,9 @@ export const providers = sqliteTable('providers', {
   longitude: real('longitude'),
   rating: real('rating'),
   imageUrl: text('image_url'),
-  createdAt: integer('created_at', { mode: 'timestamp' })
+  createdAt: timestamp('created_at', { withTimezone: true })
     .notNull()
-    .$defaultFn(() => new Date()),
+    .defaultNow(),
 });
 
 export type Category = typeof categories.$inferSelect;
