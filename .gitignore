@@ -4,55 +4,38 @@ node_modules/
 # Build / dist
 dist/
 build/
+bin/
 .expo/
 *.tsbuildinfo
+*.exe
 
-# Environment
+# Environment (CRUCIAAL voor veiligheid!)
 .env
 .env.local
 .env.*.local
+.env.production
 
-# IDE
-.idea/
-.vscode/
-*.swp
-*.swo
-
-# OS
-.DS_Store
-Thumbs.db
-
-# Logs
-*.log
-npm-debug.log*
-
-# Database
+# Database & Tools
 *.db
 *.db-journal
+.drizzle/
+.turbo/
 
-# Expo
-web-build/
+# IDE & OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+*.swp
 
-# Testing
+# Logs & Testing
+*.log
+npm-debug.log*
 coverage/
 .nyc_output/
 
+# Expo / Mobile
+web-build/
 
-.env
-.env.local
 
 howtorun.txt
-
-# Go binaries and build artifacts
-bin/
-*.exe
-*.exe~
-*.dll
-*.so
-*.dylib
-__debug_bin
-
-
-# Drizzle / SQL specific
-.drizzle/
-*.sqlite
