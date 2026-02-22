@@ -20,6 +20,7 @@ export interface Service {
 
 export interface Provider {
   id: string;
+  userId?: string | null;
   name: string;
   description: string | null;
   categoryId: string;

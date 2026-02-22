@@ -32,6 +32,13 @@ export default function TabLayout() {
           tabBarLabel: 'Favorites',
         }}
       />
+      <Tabs.Screen
+        name="account"
+        options={{
+          title: 'Account',
+          tabBarLabel: 'Account',
+        }}
+      />
     </Tabs>
   );
 }

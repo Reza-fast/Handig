@@ -4,6 +4,7 @@ import { runMigrations } from './db/index.js';
 import categoriesRouter from './routes/categories.js';
 import providersRouter from './routes/providers.js';
 import servicesRouter from './routes/services.js';
+import meRouter from './routes/me.js';
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
@@ -14,6 +15,7 @@ app.use(express.json());
 app.use('/api/categories', categoriesRouter);
 app.use('/api/providers', providersRouter);
 app.use('/api/services', servicesRouter);
+app.use('/api/me', meRouter);
 
 app.get('/health', (_req, res) => {
   res.json({ ok: true });

@@ -84,6 +84,28 @@ Then press `i` for iOS simulator or `a` for Android emulator.
   - `EXPO_PUBLIC_API_URL=http://10.0.2.2:3000` (Android emulator)
   - Or `EXPO_PUBLIC_API_URL=http://YOUR_LOCAL_IP:3000` for a physical device
 
+### 5. Auth (Supabase)
+
+The app uses **Supabase Auth** so users and providers can sign up, sign in, and manage profile and listings.
+
+1. **API** — In `apps/api/.env` add **one** of:
+   - **SUPABASE_URL** (recommended for projects using JWT Signing Keys / RS256 or ES256):
+     ```bash
+     SUPABASE_URL=https://<project-ref>.supabase.co
+     ```
+     The API will verify tokens using the project’s JWKS endpoint.
+   - **SUPABASE_JWT_SECRET** (legacy, for HS256 only): from **Project Settings → API → JWT Secret**.
+
+2. **Mobile** — In `apps/mobile/.env` add (from **Project Settings → API**):
+   ```bash
+   EXPO_PUBLIC_SUPABASE_URL=https://<project-ref>.supabase.co
+   EXPO_PUBLIC_SUPABASE_ANON_KEY=<anon-public-key>
+   ```
+
+3. In Supabase **Authentication → Providers**, enable **Email** (and optionally **Phone**).
+
+4. **Provider photos** — To allow uploads from the app, create a Storage bucket (e.g. `provider-photos`) in Supabase and set policies so authenticated users can upload. For now, providers can add photos by pasting image URLs (e.g. from Supabase Storage or any public URL) in “Edit listing → Photos”.
+
 ## Scripts (from root)
 
 | Script        | Description                |
@@ -97,15 +119,28 @@ Then press `i` for iOS simulator or `a` for Android emulator.
 
 ## API endpoints
 
+**Public**
+
 - `GET /api/categories` – list categories
+- `GET /api/categories/:id/services` – services in a category
 - `GET /api/categories/:id/providers` – providers in a category
 - `GET /api/providers/:id` – single provider
+- `GET /api/providers/:id/photos` – photos for a provider
+
+**Authenticated** (send `Authorization: Bearer <supabase-access-token>`)
+
+- `GET /api/me` – my profile (creates one if missing)
+- `PATCH /api/me` – update profile (displayName, accountType, phone, companyName, avatarUrl)
+- `GET /api/providers/my` – my provider listings
+- `POST /api/providers` – create listing (name, categoryId, serviceId, description?, address?)
+- `PATCH /api/providers/:id` – update my listing
+- `POST /api/providers/:id/photos` – add photo (body: `{ "url": "..." }`)
+- `DELETE /api/providers/:id/photos/:photoId` – remove photo
 
 ## Next steps
 
 - Add search (by name, category)
 - Add maps / “nearby” using provider lat/lng
-- Add auth and favorites persistence
-- Add Supabase Auth and Realtime from the mobile app if needed
+- Add image picker + Supabase Storage upload for provider photos in the app
 
 **Assets:** Replace the placeholder images in `apps/mobile/assets/` with your own `icon.png`, `splash-icon.png`, and `adaptive-icon.png` (e.g. 1024×1024 for icon) before publishing.
