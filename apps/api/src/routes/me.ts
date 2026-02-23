@@ -13,6 +13,8 @@ function toProfile(p: typeof profiles.$inferSelect) {
     accountType: p.accountType,
     phone: p.phone ?? null,
     companyName: p.companyName ?? null,
+    btwNumber: p.btwNumber ?? null,
+    address: p.address ?? null,
     avatarUrl: p.avatarUrl ?? null,
     createdAt: p.createdAt.toISOString(),
     updatedAt: p.updatedAt.toISOString(),
@@ -54,6 +56,8 @@ router.patch('/', requireAuth, async (req: AuthenticatedRequest, res: Response) 
   const accountType = body.accountType === 'company' || body.accountType === 'individual' ? body.accountType : undefined;
   const phone = typeof body.phone === 'string' ? body.phone : undefined;
   const companyName = typeof body.companyName === 'string' ? body.companyName : undefined;
+  const btwNumber = typeof body.btwNumber === 'string' ? body.btwNumber : undefined;
+  const address = typeof body.address === 'string' ? body.address : undefined;
   const avatarUrl = typeof body.avatarUrl === 'string' ? body.avatarUrl : undefined;
 
   const rows = await db.select().from(profiles).where(eq(profiles.id, userId)).limit(1);
@@ -66,6 +70,8 @@ router.patch('/', requireAuth, async (req: AuthenticatedRequest, res: Response) 
       displayName: displayName ?? null,
       phone: phone ?? null,
       companyName: companyName ?? null,
+      btwNumber: btwNumber ?? null,
+      address: address ?? null,
       avatarUrl: avatarUrl ?? null,
     });
     const again = await db.select().from(profiles).where(eq(profiles.id, userId)).limit(1);
@@ -85,6 +91,8 @@ router.patch('/', requireAuth, async (req: AuthenticatedRequest, res: Response) 
   if (accountType !== undefined) updates.accountType = accountType;
   if (phone !== undefined) updates.phone = phone;
   if (companyName !== undefined) updates.companyName = companyName;
+  if (btwNumber !== undefined) updates.btwNumber = btwNumber;
+  if (address !== undefined) updates.address = address;
   if (avatarUrl !== undefined) updates.avatarUrl = avatarUrl;
 
   await db.update(profiles).set(updates).where(eq(profiles.id, userId));

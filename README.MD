@@ -104,7 +104,7 @@ The app uses **Supabase Auth** so users and providers can sign up, sign in, and 
 
 3. In Supabase **Authentication → Providers**, enable **Email** (and optionally **Phone**).
 
-4. **Provider photos** — To allow uploads from the app, create a Storage bucket (e.g. `provider-photos`) in Supabase and set policies so authenticated users can upload. For now, providers can add photos by pasting image URLs (e.g. from Supabase Storage or any public URL) in “Edit listing → Photos”.
+4. **Storage (profile picture & provider photos)** — In Supabase **Storage**, create two **public** buckets: **`avatars`** (profile pictures) and **`provider-photos`** (listing photos). Add policies so authenticated users can INSERT/UPDATE. In My profile users can upload a profile picture; in Edit listing they can upload photos from the device or paste a URL. For now, providers can add photos by pasting image URLs (e.g. from Supabase Storage or any public URL) in “Edit listing → Photos”.
 
 ## Scripts (from root)
 

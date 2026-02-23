@@ -10,9 +10,11 @@ import {
   Alert,
   Image,
 } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
 import { useLocalSearchParams } from 'expo-router';
 import { useTheme } from '@/theme/ThemeContext';
 import { api } from '@/api/client';
+import { uploadProviderPhoto } from '@/lib/storage';
 import {
   useProviderPhotos,
   useUpdateProviderMutation,
@@ -29,6 +31,7 @@ export default function EditProviderScreen() {
   const [address, setAddress] = useState('');
   const [photoUrl, setPhotoUrl] = useState('');
   const [loading, setLoading] = useState(true);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
   const { data: photos = [], refetch: refetchPhotos } = useProviderPhotos(providerId || null);
   const updateMutation = useUpdateProviderMutation(providerId);
@@ -60,7 +63,7 @@ export default function EditProviderScreen() {
     }
   };
 
-  const handleAddPhoto = async () => {
+  const handleAddPhotoByUrl = async () => {
     const url = photoUrl.trim();
     if (!url) {
       Alert.alert('Error', 'Enter a photo URL.');
@@ -72,6 +75,33 @@ export default function EditProviderScreen() {
       refetchPhotos();
     } catch (e) {
       Alert.alert('Error', (e as Error).message);
+    }
+  };
+
+  const handleUploadPhoto = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission needed', 'Allow access to your photos to upload images.');
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 0.8,
+    });
+    if (result.canceled || !result.assets?.[0]?.uri) return;
+    setUploadingPhoto(true);
+    try {
+      const res = await fetch(result.assets[0].uri);
+      const blob = await res.blob();
+      const url = await uploadProviderPhoto(providerId, blob);
+      await addPhotoMutation.mutateAsync(url);
+      refetchPhotos();
+    } catch (e) {
+      Alert.alert('Upload failed', (e as Error).message);
+    } finally {
+      setUploadingPhoto(false);
     }
   };
 
@@ -154,6 +184,21 @@ export default function EditProviderScreen() {
       </Pressable>
 
       <Text style={[styles.sectionTitle, { color: colors.text }]}>Photos</Text>
+      <Pressable
+        onPress={handleUploadPhoto}
+        disabled={uploadingPhoto}
+        style={({ pressed }) => [
+          styles.uploadPhotoBtn,
+          { backgroundColor: colors.primary, borderColor: colors.primary },
+          pressed && styles.buttonPressed,
+        ]}
+      >
+        {uploadingPhoto ? (
+          <ActivityIndicator color="#fff" size="small" />
+        ) : (
+          <Text style={styles.buttonText}>Upload photo from device</Text>
+        )}
+      </Pressable>
       {photos.map((ph) => (
         <View key={ph.id} style={[styles.photoRow, { backgroundColor: colors.card, borderColor: colors.border }]}>
           <Image source={{ uri: ph.url }} style={styles.photoThumb} />
@@ -174,12 +219,12 @@ export default function EditProviderScreen() {
           ]}
           value={photoUrl}
           onChangeText={setPhotoUrl}
-          placeholder="Paste image URL (e.g. from Supabase Storage)"
+          placeholder="Or paste image URL"
           placeholderTextColor={colors.textSecondary}
           autoCapitalize="none"
         />
         <Pressable
-          onPress={handleAddPhoto}
+          onPress={handleAddPhotoByUrl}
           disabled={addPhotoMutation.isPending || !photoUrl.trim()}
           style={({ pressed }) => [
             styles.addPhotoBtn,
@@ -227,6 +272,7 @@ const styles = StyleSheet.create({
   },
   photoThumb: { width: 56, height: 56, borderRadius: 8 },
   deleteBtn: { marginLeft: 12, padding: 8, borderWidth: 1, borderRadius: 8 },
+  uploadPhotoBtn: { paddingVertical: 12, paddingHorizontal: 16, borderRadius: 12, marginBottom: 12, alignItems: 'center', borderWidth: 2 },
   addPhotoRow: { flexDirection: 'row', gap: 8, alignItems: 'center', marginTop: 8 },
   flex1: { flex: 1, marginBottom: 0 },
   addPhotoBtn: { paddingVertical: 12, paddingHorizontal: 16, borderRadius: 12 },

@@ -7,6 +7,8 @@ export const profiles = pgTable('profiles', {
   accountType: text('account_type').notNull(), // 'company' | 'individual'
   phone: text('phone'),
   companyName: text('company_name'),
+  btwNumber: text('btw_number'), // Belgian VAT number (for companies)
+  address: text('address'),
   avatarUrl: text('avatar_url'),
   createdAt: timestamp('created_at', { withTimezone: true })
     .notNull()
