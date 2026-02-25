@@ -1,8 +1,9 @@
 import { Router, Response } from 'express';
 import { db } from '../db/index.js';
-import { profiles } from '../db/schema.js';
+import { profiles, providers } from '../db/schema.js';
 import { eq } from 'drizzle-orm';
 import { requireAuth, AuthenticatedRequest } from '../middleware/auth.js';
+import { supabaseAdmin } from '../lib/supabaseAdmin.js';
 
 const router = Router();
 
@@ -114,6 +115,29 @@ router.patch('/', requireAuth, async (req: AuthenticatedRequest, res: Response) 
   await db.update(profiles).set(updates).where(eq(profiles.id, userId));
   const updated = await db.select().from(profiles).where(eq(profiles.id, userId)).limit(1);
   res.json(toProfile(updated[0]!));
+});
+
+/** Delete my account (profile, providers, and auth user). Client must verify password before calling. */
+router.delete('/', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  const userId = req.userId!;
+  try {
+    await db.delete(providers).where(eq(providers.userId, userId));
+    await db.delete(profiles).where(eq(profiles.id, userId));
+    if (!supabaseAdmin) {
+      res.status(500).json({ error: 'Server misconfiguration: SUPABASE_SERVICE_ROLE_KEY required to delete account' });
+      return;
+    }
+    const { error } = await supabaseAdmin.auth.admin.deleteUser(userId);
+    if (error) {
+      console.error('[me] deleteUser failed:', error);
+      res.status(500).json({ error: error.message });
+      return;
+    }
+    res.status(204).send();
+  } catch (err) {
+    console.error('[me] Account delete failed:', err);
+    res.status(500).json({ error: 'Failed to delete account' });
+  }
 });
 
 export default router;

@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Text, Pressable, StyleSheet, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTheme } from '@/theme/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -48,7 +48,11 @@ export default function AccountTabScreen() {
   }
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <ScrollView
+      style={[styles.scroll, { backgroundColor: colors.background }]}
+      contentContainerStyle={styles.container}
+      keyboardShouldPersistTaps="handled"
+    >
       <Text style={[styles.title, { color: colors.text }]}>Account</Text>
       <Text style={[styles.subtitle, { color: colors.textSecondary }]} numberOfLines={1}>
         {user.email}
@@ -74,17 +78,38 @@ export default function AccountTabScreen() {
         <Text style={[styles.buttonSecondaryText, { color: colors.text }]}>My provider listings</Text>
       </Pressable>
       <Pressable
+        onPress={() => router.push('/change-password')}
+        style={({ pressed }) => [
+          styles.buttonSecondary,
+          { borderColor: colors.border },
+          pressed && styles.buttonPressed,
+        ]}
+      >
+        <Text style={[styles.buttonSecondaryText, { color: colors.text }]}>Change password</Text>
+      </Pressable>
+      <Pressable
+        onPress={() => router.push('/delete-account')}
+        style={({ pressed }) => [
+          styles.buttonSecondary,
+          { borderColor: colors.border },
+          pressed && styles.buttonPressed,
+        ]}
+      >
+        <Text style={[styles.buttonSecondaryText, { color: colors.text }]}>Delete account</Text>
+      </Pressable>
+      <Pressable
         onPress={() => signOut().then(() => router.replace('/(tabs)'))}
         style={[styles.signOut, { borderColor: colors.border }]}
       >
         <Text style={[styles.signOutText, { color: colors.textSecondary }]}>Sign out</Text>
       </Pressable>
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 24 },
+  scroll: { flex: 1 },
+  container: { padding: 24, paddingBottom: 48 },
   title: { fontSize: 22, fontWeight: '700', marginBottom: 8 },
   subtitle: { fontSize: 15, marginBottom: 24 },
   button: {

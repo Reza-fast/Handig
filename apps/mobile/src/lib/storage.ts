@@ -4,11 +4,7 @@ import { supabase } from './supabase';
 const AVATARS_BUCKET = 'avatars';
 const PROVIDER_PHOTOS_BUCKET = 'provider-photos';
 
-/**
- * Read a local image URI (file://, content://, ph://) and return an ArrayBuffer.
- * Uses expo-file-system so React Native picker URIs produce real file data (fetch(uri) often returns empty body).
- * Returns ArrayBuffer because React Native does not support creating Blobs from ArrayBufferView.
- */
+
 export async function uriToArrayBuffer(uri: string): Promise<ArrayBuffer> {
   let readUri = uri;
   if (!uri.startsWith('file://')) {
