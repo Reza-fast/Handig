@@ -5,10 +5,14 @@ export const profiles = pgTable('profiles', {
   id: uuid('id').primaryKey(),
   displayName: text('display_name'),
   accountType: text('account_type').notNull(), // 'company' | 'individual'
+  email: text('email'),
   phone: text('phone'),
   companyName: text('company_name'),
   btwNumber: text('btw_number'), // Belgian VAT number (for companies)
-  address: text('address'),
+  street: text('street'),
+  streetNumber: text('street_number'),
+  zipCode: text('zip_code'),
+  city: text('city'),
   avatarUrl: text('avatar_url'),
   createdAt: timestamp('created_at', { withTimezone: true })
     .notNull()

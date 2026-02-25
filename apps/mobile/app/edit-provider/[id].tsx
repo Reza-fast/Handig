@@ -14,7 +14,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { useLocalSearchParams } from 'expo-router';
 import { useTheme } from '@/theme/ThemeContext';
 import { api } from '@/api/client';
-import { uploadProviderPhoto } from '@/lib/storage';
+import { uploadProviderPhoto, uriToArrayBuffer } from '@/lib/storage';
 import {
   useProviderPhotos,
   useUpdateProviderMutation,
@@ -93,9 +93,8 @@ export default function EditProviderScreen() {
     if (result.canceled || !result.assets?.[0]?.uri) return;
     setUploadingPhoto(true);
     try {
-      const res = await fetch(result.assets[0].uri);
-      const blob = await res.blob();
-      const url = await uploadProviderPhoto(providerId, blob);
+      const body = await uriToArrayBuffer(result.assets[0].uri);
+      const url = await uploadProviderPhoto(providerId, body);
       await addPhotoMutation.mutateAsync(url);
       refetchPhotos();
     } catch (e) {

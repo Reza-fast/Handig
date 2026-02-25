@@ -15,5 +15,8 @@
   },
   "engines": {
     "node": ">=20"
+  },
+  "dependencies": {
+    "expo-file-system": "~19.0.21"
   }
 }

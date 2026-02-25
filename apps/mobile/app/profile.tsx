@@ -15,16 +15,20 @@ import { useRouter } from 'expo-router';
 import { useTheme } from '@/theme/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { api } from '@/api/client';
-import { uploadAvatar } from '@/lib/storage';
+import { uploadAvatar, uriToArrayBuffer } from '@/lib/storage';
 
 type Profile = {
   id: string;
   displayName: string | null;
   accountType: string;
+  email: string | null;
   phone: string | null;
   companyName: string | null;
   btwNumber: string | null;
-  address: string | null;
+  street: string | null;
+  streetNumber: string | null;
+  zipCode: string | null;
+  city: string | null;
   avatarUrl: string | null;
   createdAt: string;
   updatedAt: string;
@@ -39,10 +43,14 @@ export default function ProfileScreen() {
   const [saving, setSaving] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [displayName, setDisplayName] = useState('');
+  const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [companyName, setCompanyName] = useState('');
   const [btwNumber, setBtwNumber] = useState('');
-  const [address, setAddress] = useState('');
+  const [street, setStreet] = useState('');
+  const [streetNumber, setStreetNumber] = useState('');
+  const [zipCode, setZipCode] = useState('');
+  const [city, setCity] = useState('');
 
   useEffect(() => {
     if (!user) {
@@ -56,10 +64,14 @@ export default function ProfileScreen() {
         if (!cancelled) {
           setProfile(data);
           setDisplayName(data.displayName ?? '');
+          setEmail(data.email ?? '');
           setPhone(data.phone ?? '');
           setCompanyName(data.companyName ?? '');
           setBtwNumber(data.btwNumber ?? '');
-          setAddress(data.address ?? '');
+          setStreet(data.street ?? '');
+          setStreetNumber(data.streetNumber ?? '');
+          setZipCode(data.zipCode ?? '');
+          setCity(data.city ?? '');
         }
       } catch (e) {
         if (!cancelled) setProfile(null);
@@ -78,10 +90,14 @@ export default function ProfileScreen() {
         method: 'PATCH',
         body: JSON.stringify({
           displayName: displayName.trim() || undefined,
+          email: email.trim() || undefined,
           phone: phone.trim() || undefined,
           companyName: companyName.trim() || undefined,
           btwNumber: btwNumber.trim() || undefined,
-          address: address.trim() || undefined,
+          street: street.trim() || undefined,
+          streetNumber: streetNumber.trim() || undefined,
+          zipCode: zipCode.trim() || undefined,
+          city: city.trim() || undefined,
         }),
       });
       setProfile(data);
@@ -109,9 +125,8 @@ export default function ProfileScreen() {
     if (result.canceled || !result.assets?.[0]?.uri) return;
     setUploadingAvatar(true);
     try {
-      const res = await fetch(result.assets[0].uri);
-      const blob = await res.blob();
-      const url = await uploadAvatar(user.id, blob);
+      const body = await uriToArrayBuffer(result.assets[0].uri);
+      const url = await uploadAvatar(user.id, body);
       const data = await api<Profile>('/api/me', {
         method: 'PATCH',
         body: JSON.stringify({ avatarUrl: url }),
@@ -179,6 +194,17 @@ export default function ProfileScreen() {
         placeholder="Your name"
         placeholderTextColor={colors.textSecondary}
       />
+      <Text style={[styles.label, { color: colors.textSecondary }]}>Email</Text>
+      <TextInput
+        style={[styles.input, { backgroundColor: colors.card, color: colors.text, borderColor: colors.border }]}
+        value={email}
+        onChangeText={setEmail}
+        placeholder="you@example.com"
+        placeholderTextColor={colors.textSecondary}
+        keyboardType="email-address"
+        autoCapitalize="none"
+        autoCorrect={false}
+      />
       {profile?.accountType === 'individual' && (
         <>
           <Text style={[styles.label, { color: colors.textSecondary }]}>Phone</Text>
@@ -214,12 +240,38 @@ export default function ProfileScreen() {
         </>
       )}
 
-      <Text style={[styles.label, { color: colors.textSecondary }]}>Address</Text>
+      <Text style={[styles.label, { color: colors.textSecondary }]}>Street</Text>
       <TextInput
         style={[styles.input, { backgroundColor: colors.card, color: colors.text, borderColor: colors.border }]}
-        value={address}
-        onChangeText={setAddress}
-        placeholder="Street, city, postal code"
+        value={street}
+        onChangeText={setStreet}
+        placeholder="Street name"
+        placeholderTextColor={colors.textSecondary}
+      />
+      <Text style={[styles.label, { color: colors.textSecondary }]}>Number</Text>
+      <TextInput
+        style={[styles.input, { backgroundColor: colors.card, color: colors.text, borderColor: colors.border }]}
+        value={streetNumber}
+        onChangeText={setStreetNumber}
+        placeholder="House / building number"
+        placeholderTextColor={colors.textSecondary}
+        keyboardType="default"
+      />
+      <Text style={[styles.label, { color: colors.textSecondary }]}>Zip code</Text>
+      <TextInput
+        style={[styles.input, { backgroundColor: colors.card, color: colors.text, borderColor: colors.border }]}
+        value={zipCode}
+        onChangeText={setZipCode}
+        placeholder="e.g. 1000"
+        placeholderTextColor={colors.textSecondary}
+        keyboardType="number-pad"
+      />
+      <Text style={[styles.label, { color: colors.textSecondary }]}>City</Text>
+      <TextInput
+        style={[styles.input, { backgroundColor: colors.card, color: colors.text, borderColor: colors.border }]}
+        value={city}
+        onChangeText={setCity}
+        placeholder="City"
         placeholderTextColor={colors.textSecondary}
       />
 

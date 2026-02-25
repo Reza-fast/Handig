@@ -11,10 +11,14 @@ function toProfile(p: typeof profiles.$inferSelect) {
     id: p.id,
     displayName: p.displayName ?? null,
     accountType: p.accountType,
+    email: p.email ?? null,
     phone: p.phone ?? null,
     companyName: p.companyName ?? null,
     btwNumber: p.btwNumber ?? null,
-    address: p.address ?? null,
+    street: p.street ?? null,
+    streetNumber: p.streetNumber ?? null,
+    zipCode: p.zipCode ?? null,
+    city: p.city ?? null,
     avatarUrl: p.avatarUrl ?? null,
     createdAt: p.createdAt.toISOString(),
     updatedAt: p.updatedAt.toISOString(),
@@ -54,10 +58,14 @@ router.patch('/', requireAuth, async (req: AuthenticatedRequest, res: Response) 
   const body = req.body as Record<string, unknown>;
   const displayName = typeof body.displayName === 'string' ? body.displayName : undefined;
   const accountType = body.accountType === 'company' || body.accountType === 'individual' ? body.accountType : undefined;
+  const email = typeof body.email === 'string' ? body.email : undefined;
   const phone = typeof body.phone === 'string' ? body.phone : undefined;
   const companyName = typeof body.companyName === 'string' ? body.companyName : undefined;
   const btwNumber = typeof body.btwNumber === 'string' ? body.btwNumber : undefined;
-  const address = typeof body.address === 'string' ? body.address : undefined;
+  const street = typeof body.street === 'string' ? body.street : undefined;
+  const streetNumber = typeof body.streetNumber === 'string' ? body.streetNumber : undefined;
+  const zipCode = typeof body.zipCode === 'string' ? body.zipCode : undefined;
+  const city = typeof body.city === 'string' ? body.city : undefined;
   const avatarUrl = typeof body.avatarUrl === 'string' ? body.avatarUrl : undefined;
 
   const rows = await db.select().from(profiles).where(eq(profiles.id, userId)).limit(1);
@@ -68,10 +76,14 @@ router.patch('/', requireAuth, async (req: AuthenticatedRequest, res: Response) 
       id: userId,
       accountType: accountType ?? 'individual',
       displayName: displayName ?? null,
+      email: email ?? null,
       phone: phone ?? null,
       companyName: companyName ?? null,
       btwNumber: btwNumber ?? null,
-      address: address ?? null,
+      street: street ?? null,
+      streetNumber: streetNumber ?? null,
+      zipCode: zipCode ?? null,
+      city: city ?? null,
       avatarUrl: avatarUrl ?? null,
     });
     const again = await db.select().from(profiles).where(eq(profiles.id, userId)).limit(1);
@@ -89,10 +101,14 @@ router.patch('/', requireAuth, async (req: AuthenticatedRequest, res: Response) 
   };
   if (displayName !== undefined) updates.displayName = displayName;
   if (accountType !== undefined) updates.accountType = accountType;
+  if (email !== undefined) updates.email = email;
   if (phone !== undefined) updates.phone = phone;
   if (companyName !== undefined) updates.companyName = companyName;
   if (btwNumber !== undefined) updates.btwNumber = btwNumber;
-  if (address !== undefined) updates.address = address;
+  if (street !== undefined) updates.street = street;
+  if (streetNumber !== undefined) updates.streetNumber = streetNumber;
+  if (zipCode !== undefined) updates.zipCode = zipCode;
+  if (city !== undefined) updates.city = city;
   if (avatarUrl !== undefined) updates.avatarUrl = avatarUrl;
 
   await db.update(profiles).set(updates).where(eq(profiles.id, userId));
