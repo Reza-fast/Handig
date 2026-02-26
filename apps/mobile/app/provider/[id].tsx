@@ -4,11 +4,13 @@ import {
   ScrollView,
   StyleSheet,
   useWindowDimensions,
+  Pressable,
 } from 'react-native';
 import { Image } from 'expo-image';
-import { useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTheme } from '@/theme/ThemeContext';
-import { useProvider } from '@/api/providers';
+import { useAuth } from '@/contexts/AuthContext';
+import { useProvider, useProviderPhotos } from '@/api/providers';
 
 const PLACEHOLDER_IMAGE =
   'https://images.unsplash.com/photo-1563453392212-326f5e854473?w=800&h=600&fit=crop';
@@ -22,9 +24,12 @@ const GALLERY_PLACEHOLDERS = [
 
 export default function ProviderScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
+  const router = useRouter();
   const { colors } = useTheme();
   const { width, height } = useWindowDimensions();
+  const { user } = useAuth();
   const { data: provider, isLoading } = useProvider(id ?? '');
+  const { data: photos = [] } = useProviderPhotos(id ?? '');
 
   const HERO_HEIGHT = height * 0.4;
   const GALLERY_ITEM_SIZE = width * 0.42;
@@ -45,8 +50,10 @@ export default function ProviderScreen() {
     );
   }
 
-  const mainImage = provider.imageUrl || PLACEHOLDER_IMAGE;
-  const galleryImages = [mainImage, ...GALLERY_PLACEHOLDERS];
+  const mainImage = provider.imageUrl || photos[0]?.url || PLACEHOLDER_IMAGE;
+  const galleryImages =
+    photos.length > 0 ? photos.map((p) => p.url) : [mainImage, ...GALLERY_PLACEHOLDERS];
+  const isOwner = !!user && !!provider.userId && user.id === provider.userId;
 
   // 5-star display with half stars: rating rounded to nearest 0.5 (e.g. 4.7 → 4.5)
   const starCount = 5;
@@ -79,8 +86,21 @@ export default function ProviderScreen() {
 
       {/* Info block - name, rating, address, short description */}
       <View style={[styles.infoCard, { backgroundColor: colors.card }]}>
-        <Text style={[styles.name, { color: colors.text }]}>{provider.name}</Text>
-        
+        <View style={styles.nameRow}>
+          <Text style={[styles.name, { color: colors.text }]}>{provider.name}</Text>
+          {isOwner && (
+            <Pressable
+              onPress={() => router.push(`/edit-provider/${provider.id}`)}
+              style={({ pressed }) => [
+                styles.editBtn,
+                { borderColor: colors.primary },
+                pressed && styles.editBtnPressed,
+              ]}
+            >
+              <Text style={[styles.editBtnText, { color: colors.primary }]}>Edit my page</Text>
+            </Pressable>
+          )}
+        </View>
         {provider.address ? (
           <Text style={[styles.address, { color: colors.textSecondary }]}>
             📍 {provider.address}
@@ -140,10 +160,8 @@ export default function ProviderScreen() {
         )}
       </View>
 
-      {/* Gallery - more pictures (scroll horizontally) */}
-      <Text style={[styles.sectionTitle, { color: colors.text }]}>
-        Photos
-      </Text>
+      {/* Gallery - provider photos */}
+      <Text style={[styles.sectionTitle, { color: colors.text }]}>Photos</Text>
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -218,7 +236,11 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     elevation: 4,
   },
-  name: { fontSize: 24, fontWeight: '800', marginBottom: 6 },
+  nameRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8, marginBottom: 6 },
+  name: { fontSize: 24, fontWeight: '800', flex: 1 },
+  editBtn: { paddingVertical: 6, paddingHorizontal: 12, borderRadius: 8, borderWidth: 2 },
+  editBtnPressed: { opacity: 0.9 },
+  editBtnText: { fontSize: 14, fontWeight: '600' },
   ratingRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 },
   starsRow: { flexDirection: 'row', alignItems: 'center' },
   star: { fontSize: 22 },

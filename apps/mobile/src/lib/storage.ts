@@ -3,6 +3,7 @@ import { supabase } from './supabase';
 
 const AVATARS_BUCKET = 'avatars';
 const PROVIDER_PHOTOS_BUCKET = 'provider-photos';
+const COMPANY_PHOTOS_BUCKET = 'provider-photos';
 
 
 export async function uriToArrayBuffer(uri: string): Promise<ArrayBuffer> {
@@ -40,5 +41,16 @@ export async function uploadProviderPhoto(providerId: string, body: ArrayBuffer)
     .upload(path, body, { contentType: 'image/jpeg', upsert: false });
   if (error) throw new Error(error.message);
   const { data: urlData } = supabase.storage.from(PROVIDER_PHOTOS_BUCKET).getPublicUrl(path);
+  return urlData.publicUrl;
+}
+
+/** Upload a company page photo. Returns public URL or throws. */
+export async function uploadCompanyPhoto(userId: string, body: ArrayBuffer): Promise<string> {
+  const path = `${userId}/${Date.now()}.jpg`;
+  const { error } = await supabase.storage
+    .from(COMPANY_PHOTOS_BUCKET)
+    .upload(path, body, { contentType: 'image/jpeg', upsert: false });
+  if (error) throw new Error(error.message);
+  const { data: urlData } = supabase.storage.from(COMPANY_PHOTOS_BUCKET).getPublicUrl(path);
   return urlData.publicUrl;
 }

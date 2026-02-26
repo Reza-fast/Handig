@@ -6,9 +6,12 @@ import {
   StyleSheet,
   useWindowDimensions,
 } from 'react-native';
-import { Link } from 'expo-router';
+import { Link, useRouter } from 'expo-router';
 import { Image } from 'expo-image';
 import { useTheme } from '@/theme/ThemeContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { useQuery } from '@tanstack/react-query';
+import { api } from '@/api/client';
 import { useCategories, useServices } from '@/api/categories';
 
 const PLACEHOLDER_IMAGE =
@@ -98,13 +101,73 @@ function CategorySection({
   );
 }
 
+function CompanyHomeContent() {
+  const { colors } = useTheme();
+  const router = useRouter();
+  const { user } = useAuth();
+
+  if (!user) return null;
+
+  return (
+    <ScrollView
+      style={[styles.container, { backgroundColor: colors.background }]}
+      contentContainerStyle={[styles.content, styles.companyHome]}
+      showsVerticalScrollIndicator={false}
+    >
+      <Text style={[styles.companyHomeTitle, { color: colors.text }]}>Your company page</Text>
+      <Text style={[styles.companyHomeSubtitle, { color: colors.textSecondary }]}>
+        Manage your company page and content here. Individuals see the Explore tab to find services.
+      </Text>
+      <Pressable
+        onPress={() => router.push(`/company/${user.id}`)}
+        style={({ pressed }) => [
+          styles.companyHomeBtn,
+          { backgroundColor: colors.card, borderColor: colors.border },
+          pressed && styles.cardPressed,
+        ]}
+      >
+        <Text style={[styles.companyHomeBtnText, { color: colors.text }]}>View my page</Text>
+      </Pressable>
+      <Pressable
+        onPress={() => router.push('/edit-company')}
+        style={({ pressed }) => [
+          styles.companyHomeBtnPrimary,
+          { backgroundColor: colors.primary },
+          pressed && styles.cardPressed,
+        ]}
+      >
+        <Text style={styles.companyHomeBtnPrimaryText}>Edit my page</Text>
+      </Pressable>
+    </ScrollView>
+  );
+}
+
 export default function ExploreScreen() {
   const { colors } = useTheme();
   const { width } = useWindowDimensions();
+  const { user } = useAuth();
+  const { data: me, isLoading: meLoading } = useQuery({
+    queryKey: ['me'],
+    queryFn: () => api<{ accountType: string }>('/api/me'),
+    enabled: !!user,
+  });
   const { data: categories, isLoading } = useCategories();
 
+  const isCompany = me?.accountType === 'company';
   const isTablet = width >= 768;
   const cardWidth = isTablet ? 320 : 270;
+
+  if (user && meLoading) {
+    return (
+      <View style={[styles.center, { backgroundColor: colors.background }]}>
+        <Text style={{ color: colors.textSecondary }}>Loading...</Text>
+      </View>
+    );
+  }
+
+  if (user && isCompany) {
+    return <CompanyHomeContent />;
+  }
 
   if (isLoading) {
     return (
@@ -180,5 +243,42 @@ const styles = StyleSheet.create({
 
   loadingText: {
     fontSize: 14,
+  },
+
+  companyHome: {
+    paddingTop: 24,
+  },
+  companyHomeTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    marginBottom: 8,
+  },
+  companyHomeSubtitle: {
+    fontSize: 15,
+    lineHeight: 22,
+    marginBottom: 24,
+    color: '#94a3b8',
+  },
+  companyHomeBtn: {
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    borderWidth: 1,
+    marginBottom: 12,
+  },
+  companyHomeBtnText: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  companyHomeBtnPrimary: {
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  companyHomeBtnPrimaryText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });

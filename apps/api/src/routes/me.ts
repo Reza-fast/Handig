@@ -1,7 +1,7 @@
 import { Router, Response } from 'express';
 import { db } from '../db/index.js';
-import { profiles, providers } from '../db/schema.js';
-import { eq } from 'drizzle-orm';
+import { profiles, providers, companyPhotos } from '../db/schema.js';
+import { eq, and, asc } from 'drizzle-orm';
 import { requireAuth, AuthenticatedRequest } from '../middleware/auth.js';
 import { supabaseAdmin } from '../lib/supabaseAdmin.js';
 
@@ -21,6 +21,7 @@ function toProfile(p: typeof profiles.$inferSelect) {
     zipCode: p.zipCode ?? null,
     city: p.city ?? null,
     avatarUrl: p.avatarUrl ?? null,
+    companyDescription: p.companyDescription ?? null,
     createdAt: p.createdAt.toISOString(),
     updatedAt: p.updatedAt.toISOString(),
   };
@@ -68,6 +69,7 @@ router.patch('/', requireAuth, async (req: AuthenticatedRequest, res: Response) 
   const zipCode = typeof body.zipCode === 'string' ? body.zipCode : undefined;
   const city = typeof body.city === 'string' ? body.city : undefined;
   const avatarUrl = typeof body.avatarUrl === 'string' ? body.avatarUrl : undefined;
+  const companyDescription = typeof body.companyDescription === 'string' ? body.companyDescription : undefined;
 
   const rows = await db.select().from(profiles).where(eq(profiles.id, userId)).limit(1);
   const existing = rows[0];
@@ -86,6 +88,7 @@ router.patch('/', requireAuth, async (req: AuthenticatedRequest, res: Response) 
       zipCode: zipCode ?? null,
       city: city ?? null,
       avatarUrl: avatarUrl ?? null,
+      companyDescription: companyDescription ?? null,
     });
     const again = await db.select().from(profiles).where(eq(profiles.id, userId)).limit(1);
     const p = again[0];
@@ -111,10 +114,56 @@ router.patch('/', requireAuth, async (req: AuthenticatedRequest, res: Response) 
   if (zipCode !== undefined) updates.zipCode = zipCode;
   if (city !== undefined) updates.city = city;
   if (avatarUrl !== undefined) updates.avatarUrl = avatarUrl;
+  if (companyDescription !== undefined) updates.companyDescription = companyDescription;
 
   await db.update(profiles).set(updates).where(eq(profiles.id, userId));
   const updated = await db.select().from(profiles).where(eq(profiles.id, userId)).limit(1);
   res.json(toProfile(updated[0]!));
+});
+
+/** List my company photos (for edit form). */
+router.get('/company-photos', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  const userId = req.userId!;
+  const list = await db
+    .select()
+    .from(companyPhotos)
+    .where(eq(companyPhotos.userId, userId))
+    .orderBy(asc(companyPhotos.sortOrder));
+  res.json(list.map((ph) => ({ id: ph.id, url: ph.url, sortOrder: ph.sortOrder })));
+});
+
+/** Add a company photo (company users only; check accountType in client). */
+router.post('/company-photos', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  const userId = req.userId!;
+  const body = req.body as { url?: string };
+  const url = typeof body?.url === 'string' ? body.url : undefined;
+  if (!url) {
+    res.status(400).json({ error: 'url is required' });
+    return;
+  }
+  const existing = await db
+    .select({ sortOrder: companyPhotos.sortOrder })
+    .from(companyPhotos)
+    .where(eq(companyPhotos.userId, userId));
+  const maxOrder = existing.length === 0 ? -1 : Math.max(...existing.map((r) => r.sortOrder));
+  const sortOrder = maxOrder + 1;
+  await db.insert(companyPhotos).values({ userId, url, sortOrder });
+  const inserted = await db
+    .select()
+    .from(companyPhotos)
+    .where(eq(companyPhotos.userId, userId))
+    .orderBy(asc(companyPhotos.sortOrder));
+  res.status(201).json(inserted.map((ph) => ({ id: ph.id, url: ph.url, sortOrder: ph.sortOrder })));
+});
+
+/** Delete a company photo. */
+router.delete('/company-photos/:photoId', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  const userId = req.userId!;
+  const { photoId } = req.params;
+  await db
+    .delete(companyPhotos)
+    .where(and(eq(companyPhotos.userId, userId), eq(companyPhotos.id, photoId)));
+  res.status(204).send();
 });
 
 /** Delete my account (profile, providers, and auth user). Client must verify password before calling. */

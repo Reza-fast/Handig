@@ -1,6 +1,19 @@
 import { Tabs } from 'expo-router';
+import { useQuery } from '@tanstack/react-query';
+import { useAuth } from '@/contexts/AuthContext';
+import { api } from '@/api/client';
+
+type Me = { accountType: string };
 
 export default function TabLayout() {
+  const { user } = useAuth();
+  const { data: me } = useQuery({
+    queryKey: ['me'],
+    queryFn: () => api<Me>('/api/me'),
+    enabled: !!user,
+  });
+  const isCompany = me?.accountType === 'company';
+
   return (
     <Tabs
       screenOptions={{
@@ -14,8 +27,8 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Explore',
-          tabBarLabel: 'Explore',
+          title: isCompany ? 'My company' : 'Explore',
+          tabBarLabel: isCompany ? 'My company' : 'Explore',
         }}
       />
       <Tabs.Screen
@@ -23,6 +36,7 @@ export default function TabLayout() {
         options={{
           title: 'Search',
           tabBarLabel: 'Search',
+          tabBarButton: isCompany ? () => null : undefined,
         }}
       />
       <Tabs.Screen
@@ -30,6 +44,7 @@ export default function TabLayout() {
         options={{
           title: 'Favorites',
           tabBarLabel: 'Favorites',
+          tabBarButton: isCompany ? () => null : undefined,
         }}
       />
       <Tabs.Screen

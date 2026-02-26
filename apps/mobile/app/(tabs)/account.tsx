@@ -1,19 +1,23 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { View, Text, Pressable, StyleSheet, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTheme } from '@/theme/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { api } from '@/api/client';
 
+type Profile = { accountType: string };
+
 export default function AccountTabScreen() {
   const { colors } = useTheme();
   const { user, signOut } = useAuth();
   const router = useRouter();
+  const [profile, setProfile] = useState<Profile | null>(null);
 
-  // Ensure profile row exists in DB when user is logged in (e.g. after sign-up or first visit)
   useEffect(() => {
     if (!user) return;
-    api('/api/me').catch(() => {});
+    api<Profile>('/api/me')
+      .then((p) => setProfile(p))
+      .catch(() => setProfile(null));
   }, [user?.id]);
 
   if (!user) {
@@ -77,6 +81,30 @@ export default function AccountTabScreen() {
       >
         <Text style={[styles.buttonSecondaryText, { color: colors.text }]}>My provider listings</Text>
       </Pressable>
+      {profile?.accountType === 'company' && (
+        <>
+          <Pressable
+            onPress={() => router.push(`/company/${user!.id}`)}
+            style={({ pressed }) => [
+              styles.buttonSecondary,
+              { borderColor: colors.border },
+              pressed && styles.buttonPressed,
+            ]}
+          >
+            <Text style={[styles.buttonSecondaryText, { color: colors.text }]}>My company page</Text>
+          </Pressable>
+          <Pressable
+            onPress={() => router.push('/edit-company')}
+            style={({ pressed }) => [
+              styles.buttonSecondary,
+              { borderColor: colors.border },
+              pressed && styles.buttonPressed,
+            ]}
+          >
+            <Text style={[styles.buttonSecondaryText, { color: colors.text }]}>Edit company page</Text>
+          </Pressable>
+        </>
+      )}
       <Pressable
         onPress={() => router.push('/change-password')}
         style={({ pressed }) => [

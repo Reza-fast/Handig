@@ -14,6 +14,7 @@ export const profiles = pgTable('profiles', {
   zipCode: text('zip_code'),
   city: text('city'),
   avatarUrl: text('avatar_url'),
+  companyDescription: text('company_description'), // Company page "about" text (accountType=company)
   createdAt: timestamp('created_at', { withTimezone: true })
     .notNull()
     .defaultNow(),
@@ -82,6 +83,19 @@ export const providerPhotos = pgTable('provider_photos', {
     .defaultNow(),
 });
 
+/** Company page photos (for accountType=company). */
+export const companyPhotos = pgTable('company_photos', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id')
+    .notNull()
+    .references(() => profiles.id, { onDelete: 'cascade' }),
+  url: text('url').notNull(),
+  sortOrder: integer('sort_order').notNull().default(0),
+  createdAt: timestamp('created_at', { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
 export type Profile = typeof profiles.$inferSelect;
 export type NewProfile = typeof profiles.$inferInsert;
 export type Category = typeof categories.$inferSelect;
@@ -92,3 +106,5 @@ export type Provider = typeof providers.$inferSelect;
 export type NewProvider = typeof providers.$inferInsert;
 export type ProviderPhoto = typeof providerPhotos.$inferSelect;
 export type NewProviderPhoto = typeof providerPhotos.$inferInsert;
+export type CompanyPhoto = typeof companyPhotos.$inferSelect;
+export type NewCompanyPhoto = typeof companyPhotos.$inferInsert;
